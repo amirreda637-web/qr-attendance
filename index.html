@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>QR Attendance</title>
+
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 30px 15px;
+      background: #f4f6f8;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: #666;
+    }
+
+    #reader {
+      width: 100%;
+      max-width: 400px;
+      margin: 25px auto;
+      background: white;
+      padding: 10px;
+      border-radius: 15px;
+    }
+
+    #result {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 18px;
+      background: white;
+      border-radius: 12px;
+      font-size: 18px;
+    }
+
+    .success {
+      color: green;
+      font-weight: bold;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>QR Attendance</h1>
+
+  <p>Scan your QR Code</p>
+
+  <div id="reader"></div>
+
+  <div id="result">
+    Waiting for scan...
+  </div>
+
+  <script>
+
+    const WEB_APP_URL =
+      "https://script.google.com/macros/s/AKfycbymXgvIwyrvlyrxPTGFwkPBPNO8aKIVRRev9HiL13_thahMxIhze8bgepPXU_6nkG8Rzw/exec";
+
+    let lastScanned = "";
+
+    function onScanSuccess(decodedText) {
+
+      if (decodedText === lastScanned) {
+        return;
+      }
+
+      lastScanned = decodedText;
+
+      document.getElementById("result").innerHTML =
+        "⏳ Recording attendance...";
+
+      // Send QR ID to Google Apps Script
+      fetch(
+        WEB_APP_URL + "?id=" + encodeURIComponent(decodedText),
+        {
+          mode: "no-cors"
+        }
+      );
+
+      document.getElementById("result").innerHTML =
+        '<div class="success">' +
+        '✅ QR Scanned Successfully<br><br>' +
+        'ID: ' + decodedText +
+        '</div>';
+
+      setTimeout(function() {
+        lastScanned = "";
+        document.getElementById("result").innerHTML =
+          "Waiting for scan...";
+      }, 3000);
+    }
+
+    function onScanFailure(error) {
+      // Normal scanning errors are ignored
+    }
+
+    const scanner = new Html5QrcodeScanner(
+      "reader",
+      {
+        fps: 10,
+        qrbox: {
+          width: 250,
+          height: 250
+        }
+      },
+      false
+    );
+
+    scanner.render(onScanSuccess, onScanFailure);
+
+  </script>
+
+</body>
+</html>
